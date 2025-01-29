@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Fixo Responsivo com Controles de Ajuste</title>
+    <style>
+        :root {
+            --menu-width: 12%;
+            --menu-height: auto;
+            --menu-top: 0;
+            --menu-left: 0;
+            --menu-bg-color: rgba(51, 51, 51, 1);
+            --button-bg-color: black;
+            --button-hover-color: darkgray;
+            --button-active-color: #dcfcfc;
+            --button-previous-color: #25494d;
+            --button-text-previous-color: #30616a;
+            --button-waiting-color: lightgray;
+            --button-active-border-color: #f5b400;
+            --button-active-text-color: black;
+            --button-padding: 10px 20px;
+            --button-margin: 5px;
+            --button-font-size: 16px;
+            --button-controls-font-size: 14px;
+        }
+
+        body {te
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+        }
+
+        .fixed-menu {
+            position: fixed;
+            top: var(--menu-top);
+            left: var(--menu-left);
+            width: var(--menu-width);
+            height: var(--menu-height);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--menu-bg-color);
+            z-index: 1000;
+            padding: 10px;
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
+            border-radius: 9px;
+
+        }
+
+        .button {
+            padding: 4px;
+            font-size: var(--button-font-size);
+            margin: var(--button-margin);
+            background-color: var(--button-bg-color);
+            color: gray;
+            border: solid;
+            cursor: pointer;
+            width: 95%;
+            text-align: center;
+            border-radius: 9px;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .toggle-controls {
+            background-color: black;
+            color: gray;
+            border: solid;
+            padding: 4px;
+            cursor: pointer;
+            margin-top: 124px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            width: 95%;
+            text-align: center;
+        }
+
+        .button:hover, .toggle-controls:hover {
+            background-color: black;
+            color: #58deed;
+        }
+
+        .button.active {
+            background-color: var(--button-active-color);
+            border-color: var(--button-active-border-color);
+			text-color: var(--button-active-text-color);
+        }
+
+        .button.previous {
+            background-color: var(--button-previous-color);
+        }
+
+        .button.waiting {
+            background-color: var(--button-waiting-color);
+        }
+
+        .controls {
+            flex-direction: column;
+            width: 100%;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            font-size: var(--button-controls-font-size);
+        }
+
+        .controls label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .controls input[type="range"],
+        .controls input[type="number"] {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            box-sizing: border-box;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .controls input[type="range"]:focus,
+        .controls input[type="number"]:focus {
+            outline: none;
+        }
+
+        .search-container {
+            width: 100%;
+            margin-bottom: 20px;
+ margin-left: 20px;
+        }
+
+       .search-container input {
+    width: 93%;
+    color: white; /* Alterado para uma cor que contraste com o fundo */
+    padding: 10px;
+    border-radius: 5px;
+    border: down;
+    font-size: 16px;
+    box-sizing: border-box;
+    background-color: black; /* Mantido como estava */
+}
+
+        .accordion {
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion:hover {
+            background-color: #444;
+        }
+
+        .accordion:after {
+            content: '\002B';
+            font-size: 20px;
+            color: #fff;
+            float: right;
+        }
+
+        .accordion.active:after {
+            content: "\2212";
+        }
+
+        .panel {
+            padding: 0 10px;
+            display: none;
+            overflow: hidden;
+            background-color: #555;
+            max-height: 300px; /* Ajuste conforme necessário */
+            overflow-y: auto; /* Adiciona rolagem vertical */
+        }
+
+        .panel a {
+            display: block;
+            color: #fff;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid #666;
+        }
+
+        .panel a:hover {
+            background-color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .fixed-menu {
+                flex-direction: column;
+                align-items: flex-start;
+                width: auto;
+                height: 100%;
+                top: var(--menu-top);
+                left: var(--menu-left);
+                padding: 10px 0;
+            }
+
+            .button {
+                width: 100%;
+                text-align: left;
+                margin: 5px 0;
+            }
+
+            .controls {
+                width: 92%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="fixed-menu">
+    <!--Topo Logo -->
+    <!--T<img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/66ae9658bac3f_FNWfreenatstoreLogodownload.jpg" alt="Imagem Descrição" style="max-width: 12%; margin-bottom: 14px; margin-left: 6px; margin-right: auto; margin-top: 8px; opacity: 0.0 position: relative"> -->
+    <!--https://d1yei2z3i6k35z.cloudfront.net/3119789/66c01523d30dd_IMagemPAIpainel03.png 
+    https://d1yei2z3i6k35z.cloudfront.net/3119789/666e1df34d7ed_BannerFNWAssessoriaDigitalprovisorio.png -->
+
+    <!-- Topo Fundo 
+    <img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/66c01523d30dd_IMagemPAIpainel03.png" alt="Imagem Descrição" style="max-width: 14%; margin-bottom: 16px; margin-left:-35px; margin-right: auto; margin-top: 0px; opacity: 1.99; position: fixed"> -->
+
+    <!-- Topo Main
+    <img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/66c156cf2e32c_IMagemfundopainel08.png" alt="Imagem Descrição" style="max-width: 34%; margin-bottom: 16px; margin-left:0px; margin-right: auto; margin-top: 10px; opacity: 0.5; position: fixed">  -->
+
+    <!-- Corpo Transparente 
+    <img src="https://d1yei2z3i6k35z.cloudfront.net/3119789/66c156cf2e32c_IMagemfundopainel08.png" alt="Imagem Descrição" style="max-width:262%; margin-bottom: 220px; margin-left: 1590px; margin-right: auto; margin-top: -10px; opacity: 0.8; position: absolute"> -->
+
+    <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/gerador_de_prompt__segmento_desafio/', 400, 600, 2300, 100, this)">Alinhamento</button>
+<button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/white-label-digital', 400, 600, 2300, 100, this)">Objetivo: Quanto em Quanto Tempo</button>
+<button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/nc-tm-ml-calc', 400, 600, 2300, 100, this)">Ajuste de Mira NC TM ML</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/fnw_clevel_roi-maker/', 400, 600, 2300, 100, this)">ROI Maker</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Identifica_perfil_arquetipo/', 400, 600, 2300, 100, this)">ICP (Ideal Customer Profile)</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/icp_id/', 400, 600, 2300, 100, this)">Perfil de Cliente</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/gerador_de_prompt__segmento_desafio', 400, 600, 2300, 100, this)">Desafio do Cliente</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Simul-Crescim-Clientes-base-tempo/', 400, 600, 2300, 100, this)">Hunter</button>
+<button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/busca_grupostelegram_as_json/', 400, 600, 2300, 100, this)">GRP Caça Palavras</button>
+<button class="button" onclick="abrirOuFocarJanela('https://b2bleads.com.br/resultado?page=1&cnae=8599604%7C7020400&situacao=Ativa&porte=1%2C3&dataAbertura=14%2F06%2F2023&cnaeSecundario=0&tipoDados=lista', 400, 600, 2300, 100, this)">B2B - 1 em 1 Milhão</button>
+
+
+
+
+
+<br> <button class="toggle-controls">Ajustes</button>
+    <div id="controls" class="controls">
+        <label for="menu-width">Largura do Menu (%):</label>
+        <input type="range" id="menu-width" min="10" max="50" step="1" value="26">
+        <input type="number" id="menu-width-value" value="26">
+
+        <label for="menu-height">Altura do Menu (px):</label>
+        <input type="range" id="menu-height" min="100" max="600" step="1" value="auto">
+        <input type="number" id="menu-height-value" value="auto">
+
+        <label for="menu-top">Posição do Menu (px do topo):</label>
+        <input type="range" id="menu-top" min="0" max="100" step="1" value="5">
+        <input type="number" id="menu-top-value" value="5">
+
+        <label for="menu-left">Posição do Menu (px da esquerda):</label>
+        <input type="range" id="menu-left" min="0" max="200" step="1" value="5">
+        <input type="number" id="menu-left-value" value="5">
+
+        <label for="button-font-size">Tamanho da Fonte dos Botões (px):</label>
+        <input type="range" id="button-font-size" min="10" max="30" step="1" value="16">
+        <input type="number" id="button-font-size-value" value="16">
+
+        <label for="menu-bg-transparency">Transparência do Fundo do Menu (0 a 1):</label>
+        <input type="range" id="menu-bg-transparency" min="0" max="1" step="0.1" value="1">
+        <input type="number" id="menu-bg-transparency-value" value="1" step="0.1">
+
+        <label for="controls-font-size">Tamanho da Fonte dos Controles (px):</label>
+        <input type="range" id="controls-font-size" min="10" max="30" step="1" value="14">
+        <input type="number" id="controls-font-size-value" value="14">
+
+        <button id="save-settings">Salvar Configurações</button>
+        <button id="load-settings">Carregar Configurações</button>
+    </div>
+
+    <!-- Campo de Busca -->
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Buscar...">
+    </div>
+
+    <button class="accordion">==NEGÓCIO==</button>
+    <div class="panel">
+        <button class="accordion">ESTRATÉGIA</button>
+        <div class="panel">
+            <button class="accordion">LUCRATIVIDADE</button>
+            <div class="panel">
+                <div class="panel">
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/framework_3_prioridades/', '3 prioridades', 400, 600, 2300, 100, this)">Três Prioridades</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/nc-tm-ml-calc', 'NC TM ML', 400, 600, 2300, 100, this)">NC TM ML</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://pt.symbolab.com/calculator/sales/profit_margin?calculator=profit_margin-gross_margin&cost=96&revenue=197', 'Calc Margem Lucro', 400, 600, 2300, 100, this)">Calc Margem Lucro</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/eto-cenarios-breakeven', 'ETO Breakeven', 400, 600, 2300, 100, this)">ETO Breakeven</button>
+            </div>
+            <button class="accordion">VISIBILIDADE</button>
+            <div class="panel">
+              
+ 
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/prospect-videos-etapas', 400, 600, 2300, 100, this)">Visão Geral</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/aducation-clientes-equipes', 'Estratégia Consultorias', 400, 600, 2300, 100, this)">Estratégia Consultorias</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/aducation-clientes-equipes#faq-7dacae6f', 'Posicionamento Consultorias', 400, 600, 2300, 100, this)">Posicionamento Consultorias</button>
+
+<button class="button" onclick="abrirOuFocarJanela('https://www.plugoo.com.br/loja-integrada-vs-tray-commerce-o-crescimento-do-e-commerce-e-a-importancia-da-escolha-da-plataforma/', 'Marketplace', 400, 600, 2300, 100, this)">Marketplace</button>
+
+
+
+
+
+            <button class="accordion">CRESCIMENTO</button>
+            <div class="panel">
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/framework_3_prioridades/', '3 Prioridades', 400, 600, 2300, 100, this)">3 Prioridades</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Simul-Crescim-Clientes-base-tempo/', 'BaseClientes', 400, 600, 2300, 100, this)">Base Clientes</button>
+            </div>
+
+            <button class="accordion">RECORRÊNCIA</button>
+            <div class="panel">
+                <button class="button" onclick="abrirOuFocarJanela('https://docs.google.com/spreadsheets/d/1tI-3ija_F-3g9G4dKTw7oCzPqaD__bUcio5sAemfYEs/pubhtml?gid=1024774859&single=true', 'Produto Assess', 400, 600, 2300, 100, this)">Produto Assess</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Simul-Crescim-Clientes-base-tempo/', 'BaseClientes', 400, 600, 2300, 100, this)">Base Clientes</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Simul_Cresc_Assin_meta/', 'CrescimentoAssinantes', 400, 600, 2300, 100, this)">Base Assinantes</button>
+            </div>
+
+            <button class="accordion">🚀 ESCALA</button>
+            <div class="panel">
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/simulador-mensalistas', 'Simular Mensalistas', 400, 600, 2300, 100, this)">Simular Mensalistas</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/mapa150_sp-106_mg/', 'Capilaridade Territorial', 400, 600, 2300, 100, this)">Capil. Territ.</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/aducation-clientes-equipes#rawhtml-5130eba9', 'Equipes e Clientes', 400, 600, 2300, 100, this)">Equipes e Clientes</button>
+            </div>
+        </div>
+
+        <button class="accordion">TÁTICA</button>
+        <div class="panel">
+            <button class="accordion">🎯 LDR SDR BDR CLOSER</button>
+            <div class="panel">
+                <button class="button" onclick="abrirOuFocarJanela('https://docs.google.com/spreadsheets/d/1Lda1gMHSfB7QLvE_TCiCaNX5nNlWUGrP0ytlmnR6l2U/pubhtml?gid=1625103004&single=true', 'List Tab', 400, 600, 2300, 100, this)">List Tab</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://maps.app.goo.gl/XQDcZ7QVPEzF7xyDA', 'Maps Publico Alvo', 400, 600, 2300, 100, this)">Maps Pub. Alvo</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://maps.app.goo.gl/XQDcZ7QVPEzF7xyDA', 'Maps Publico Alvo', 400, 600, 2300, 100, this)">Maps Pub. Alvo</button>
+                <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/lead_gen_time_calc/', 'SDR Calc', 400, 600, 2300, 100, this)">SDR Calc</button>
+            </div>
+			</div>
+            <button class="accordion">OPERAÇÕES</button>
+            <div class="panel">
+                <button class="accordion">VENDA</button>
+                <div class="panel">
+                    <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/reuniao-eto', 'Pauta Script', 400, 600, 2300, 100, this)">Pauta Script</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://www.linkedin.com/in/51audiosobral/', 'LinkedIn', 400, 600, 2300, 100, this)">LinkedIn</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://web.whatsapp.com/', 'WhatZapPlus', 400, 600, 2300, 100, this)">✆ WhatZapPlus</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/sessoes-assessoria-consultiva', 'Sessao Assessoria Calc', 400, 600, 2300, 100, this)">Sessão Assessoria Calc</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://sobralfreenat.github.io/Intervalos-Calculadora/', 'IntervCalc', 400, 600, 2300, 100, this)">IntervCalc</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/coleta-objecao', 'coleta de objecao', 400, 600, 2300, 100, this)">Coletar Objeções</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/equacao-de-valor', 'Equação de Valor', 400, 600, 2300, 100, this)">Eq.Valor</button>
+                </div>
+			
+                <button class="accordion">IMPLEMENTAÇÃO</button>
+                <div class="panel">
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-implementacao1', 'Calc Implementação 1', 400, 600, 2300, 100, this)">Calc Implementação 1</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-implementacao2', 'Calc Implementação 2', 400, 600, 2300, 100, this)">Calc Implementação 2</button>
+                </div>
+
+                <button class="accordion">PRODUÇÃO</button>
+                <div class="panel">
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-producao1', 'Calc Produção 1', 400, 600, 2300, 100, this)">Calc Produção 1</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-producao2', 'Calc Produção 2', 400, 600, 2300, 100, this)">Calc Produção 2</button>
+                </div>
+
+                <button class="accordion">MONITORAMENTO</button>
+                <div class="panel">
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-monitoramento1', 'Calc Monitoramento 1', 400, 600, 2300, 100, this)">Calc Monitoramento 1</button>
+                    <button class="button" onclick="abrirOuFocarJanela('https://example.com/calc-monitoramento2', 'Calc Monitoramento 2', 400, 600, 2300, 100, this)">Calc Monitoramento 2</button>
+                </div>
+            </div>
+        </div>
+    
+
+    <button class="accordion">⌨ Add-Ons</button>
+    <div class="panel">
+        <button class="accordion">CONTEÙDO</button>
+        <div class="panel">
+            <button class="button" onclick="abrirOuFocarJanela('https://systeme.io/dashboard/contacts', 'Sysio Admin', 500, 900, 1800, 100, this)">Sysio_Admin</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/school/course/assessoria-digital/lecture/4540845', 'Sysio User', 500, 900, 1800, 100, this)">Sysio User</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://fnw-assessoria-digital.odoo.com/odoo', 'OdooAdmin', 500, 900, 1800, 100, this)">OdooAdmin</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://fnw-assessoria-digital.odoo.com/', 'Posicionamento Consultorias', 400, 600, 2300, 100, this)">Odoo User</button>
+        </div>
+
+        <button class="accordion">⚠️ I.A.</button>
+        <div class="panel">
+            <button class="button" onclick="abrirOuFocarJanela('https://chatgpt.com/c/5e830e42-2641-462b-abb0-3f011dc11838', 'ChatGPT free', 400, 600, 2300, 100, this)">Chat GPT Gratuito</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://copilot.microsoft.com/', 'Tendências IA', 400, 600, 2300, 100, this)">Co-Pilot</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://freenat-doc.systeme.io/blog-assessoria-digital/visualizacao-tendencias-em-ia', 'Tendências IA', 400, 600, 2300, 100, this)">Tendências IA</button>
+        </div>
+
+        <button class="accordion">🍀 Parceiros</button>
+        <div class="panel">
+            <button class="button" onclick="abrirOuFocarJanela('https://especial.adapta.org/gpt4-gratis-a/ref/Alex+Sobral/', 'Adapta GPT Promo', 400, 600, 2300, 100, this)">Acesso IA GOLD - Promo!!</button>
+            <button class="button" onclick="abrirOuFocarJanela('https://www.zibi.com.br/', 'Zibi Promo', 400, 600, 2300, 100, this)">Zibi Automação Atendimento - Promo!!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var janelas = {};
+    var botoesAtivos = {};
+
+    function abrirOuFocarJanela(url, nome, largura, altura, left, top, elemento) {
+        document.querySelectorAll('.button').forEach(function(btn) {
+            if (btn !== elemento) {
+                btn.classList.remove('waiting');
+                if (btn.classList.contains('active')) {
+                    btn.classList.remove('active');
+                    btn.classList.add('previous');
+                }
+            }
+        });
+
+        if (!janelas[nome] || janelas[nome].closed) {
+            janelas[nome] = window.open(url, nome, `width=${largura},height=${altura},left=${left},top=${top}`);
+            elemento.classList.remove('waiting');
+            elemento.classList.add('active');
+            botoesAtivos[nome] = elemento;
+        } else {
+            janelas[nome].focus();
+            if (botoesAtivos[nome] !== elemento) {
+                elemento.classList.remove('waiting');
+                elemento.classList.add('active');
+                botoesAtivos[nome] = elemento;
+            } else {
+                elemento.classList.remove('active');
+                elemento.classList.add('waiting');
+                setTimeout(function() {
+                    elemento.classList.remove('waiting');
+                    botoesAtivos[nome] = null;
+                }, 500);
+            }
+        }
+    }
+
+    document.querySelector('.toggle-controls').addEventListener('click', function() {
+        var controls = document.getElementById('controls');
+        controls.style.display = controls.style.display === 'none' ? 'flex' : 'none';
+    });
+
+    function updatePanel() {
+        var width = document.getElementById('menu-width').value + '%';
+        var height = document.getElementById('menu-height').value;
+        var top = document.getElementById('menu-top').value + 'px';
+        var left = document.getElementById('menu-left').value + 'px';
+        var bgTransparency = document.getElementById('menu-bg-transparency').value;
+        var bgColor = 'rgba(51, 51, 51, ' + bgTransparency + ')';
+        var fontSize = document.getElementById('button-font-size').value + 'px';
+        var controlsFontSize = document.getElementById('controls-font-size').value + 'px';
+
+        document.documentElement.style.setProperty('--menu-width', width);
+        document.documentElement.style.setProperty('--menu-height', height);
+        document.documentElement.style.setProperty('--menu-top', top);
+        document.documentElement.style.setProperty('--menu-left', left);
+        document.documentElement.style.setProperty('--menu-bg-color', bgColor);
+        document.documentElement.style.setProperty('--button-font-size', fontSize);
+        document.documentElement.style.setProperty('--controls-font-size', controlsFontSize);
+
+        // Atualizar os valores dos campos numéricos
+        document.getElementById('menu-width-value').value = document.getElementById('menu-width').value;
+        document.getElementById('menu-height-value').value = document.getElementById('menu-height').value;
+        document.getElementById('menu-top-value').value = document.getElementById('menu-top').value;
+        document.getElementById('menu-left-value').value = document.getElementById('menu-left').value;
+        document.getElementById('button-font-size-value').value = document.getElementById('button-font-size').value;
+        document.getElementById('menu-bg-transparency-value').value = document.getElementById('menu-bg-transparency').value;
+        document.getElementById('controls-font-size-value').value = document.getElementById('controls-font-size').value;
+    }
+
+    function syncInputs() {
+        document.querySelectorAll('.controls input[type="range"]').forEach(function(slider) {
+            slider.addEventListener('input', function() {
+                var correspondingNumberInput = document.getElementById(slider.id + '-value');
+                correspondingNumberInput.value = slider.value;
+                updatePanel();
+            });
+        });
+
+        document.querySelectorAll('.controls input[type="number"]').forEach(function(numberInput) {
+            numberInput.addEventListener('input', function() {
+                var correspondingSlider = document.getElementById(numberInput.id.replace('-value', ''));
+                correspondingSlider.value = numberInput.value;
+                updatePanel();
+            });
+        });
+    }
+
+    function salvarConfiguracoes() {
+        var configuracoes = {
+            menuWidth: document.getElementById('menu-width').value,
+            menuHeight: document.getElementById('menu-height').value,
+            menuTop: document.getElementById('menu-top').value,
+            menuLeft: document.getElementById('menu-left').value,
+            menuBgTransparency: document.getElementById('menu-bg-transparency').value,
+            buttonFontSize: document.getElementById('button-font-size').value,
+            controlsFontSize: document.getElementById('controls-font-size').value
+        };
+        localStorage.setItem('configuracoesPainel', JSON.stringify(configuracoes));
+        alert('Configurações salvas com sucesso!');
+    }
+
+    function carregarConfiguracoes() {
+        var configuracoes = JSON.parse(localStorage.getItem('configuracoesPainel'));
+        if (configuracoes) {
+            document.getElementById('menu-width').value = configuracoes.menuWidth;
+            document.getElementById('menu-height').value = configuracoes.menuHeight;
+            document.getElementById('menu-top').value = configuracoes.menuTop;
+            document.getElementById('menu-left').value = configuracoes.menuLeft;
+            document.getElementById('menu-bg-transparency').value = configuracoes.menuBgTransparency;
+            document.getElementById('button-font-size').value = configuracoes.buttonFontSize;
+            document.getElementById('controls-font-size').value = configuracoes.controlsFontSize;
+            updatePanel();
+            alert('Configurações carregadas com sucesso!');
+        } else {
+            alert('Nenhuma configuração salva encontrada.');
+        }
+    }
+
+    document.querySelectorAll('.accordion').forEach(function(button) {
+        button.addEventListener('click', function() {
+            this.classList.toggle('active');
+            var panel = this.nextElementSibling;
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+
+    document.querySelectorAll('input').forEach(function(input) {
+        input.addEventListener('input', updatePanel);
+    });
+
+    document.getElementById('save-settings').addEventListener('click', salvarConfiguracoes);
+    document.getElementById('load-settings').addEventListener('click', carregarConfiguracoes);
+
+    syncInputs();
+    updatePanel();
+
+
+document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('search-input').addEventListener('input', filterButtons);
+        });
+
+        function filterButtons() {
+            var searchTerm = document.getElementById('search-input').value.toLowerCase();
+            var buttons = document.querySelectorAll('.button');
+            var accordions = document.querySelectorAll('.accordion');
+            var panels = document.querySelectorAll('.panel');
+
+            buttons.forEach(function(button) {
+                var buttonText = button.textContent.toLowerCase();
+                var buttonOnClick = button.getAttribute('onclick').toLowerCase();
+                if (buttonText.includes(searchTerm) || buttonOnClick.includes(searchTerm)) {
+                    button.style.display = 'block';
+                    var parentPanel = button.closest('.panel');
+                    if (parentPanel) {
+                        parentPanel.style.display = 'block';
+                        var parentAccordion = parentPanel.previousElementSibling;
+                        if (parentAccordion && parentAccordion.classList.contains('accordion')) {
+                            parentAccordion.classList.add('active');
+                            parentPanel.style.display = 'block';
+                        }
+                    }
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+
+            accordions.forEach(function(accordion) {
+                var accordionText = accordion.textContent.toLowerCase();
+                if (accordionText.includes(searchTerm)) {
+                    accordion.style.display = 'block';
+                    var panel = accordion.nextElementSibling;
+                    if (panel && panel.classList.contains('panel')) {
+                        accordion.classList.add('active');
+                        panel.style.display = 'block';
+                    }
+                } else {
+                    accordion.style.display = 'none';
+                }
+            });
+
+            if (searchTerm === '') {
+                accordions.forEach(function(accordion) {
+                    accordion.style.display = 'block';
+                    var panel = accordion.nextElementSibling;
+                    if (panel && panel.classList.contains('panel')) {
+                        accordion.classList.remove('active');
+                        panel.style.display = 'none';
+                    }
+                });
+
+                buttons.forEach(function(button) {
+                    button.style.display = 'block';
+                });
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('input', filterButtons);
+</script>
+</body>
+</html>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
